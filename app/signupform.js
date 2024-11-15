@@ -1,19 +1,59 @@
 import { useState } from "react";
 import { View, StyleSheet, Text, Image, TouchableOpacity, TextInput } from "react-native";
 import { COLORS } from "../constants/Colors";
-import { Link } from "expo-router";
+import Loading from "../components/loading";
+import { Link, router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { UserStore } from "../store";
-import { useStoreState } from "pullstate";
+import { signUp } from "../store";
 
 const SignUpForm = () => {
-	const USER = useStoreState(UserStore);
-	const [password, setPassword] = useState("");
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const [user, setUser] = useState({
+		firstName: "",
+		lastName: "",
+		mobileNumber: "09",
+		email: "",
+		password: "",
+		address: "",
+	});
+
+	const handleSubmit = async () => {
+		if (!validateFields()) {
+			alert("Please fill in all the required fields.");
+			return;
+		}
+
+		if (user.password.length < 6) {
+			alert("Password must be at least 6 characters long.");
+			return;
+		}
+
+		setLoading(true);
+
+		const userId = await signUp(user);
+		if (userId) {
+			alert("Registered successfully!");
+		}
+		setLoading(false);
+
+		router.replace("/login");
+	};
+
+	const validateFields = () => {
+		return (
+			user.firstName !== "" &&
+			user.lastName !== "" &&
+			user.mobileNumber !== "" &&
+			user.email !== "" &&
+			user.password !== "" &&
+			user.address !== ""
+		);
+	};
 
 	return (
 		<View style={styles.container}>
-			<Text style={[styles.text, { fontSize: 20, marginVertical: 10 }]}>{USER.type}</Text>
+			{loading && <Loading />}
 			<Text style={[styles.text, { fontSize: 20, marginBottom: 20 }]}>Sign Up</Text>
 			<Image style={styles.eclipse} source={require("../assets/images/eclipse.png")} />
 			<View style={styles.innerContainer}>
@@ -22,30 +62,46 @@ const SignUpForm = () => {
 						style={[styles.input, { flex: 1 }]}
 						placeholder="First Name"
 						placeholderTextColor={"black"}
+						value={user.firstName}
+						onChangeText={(text) => setUser({ ...user, firstName: text })}
 					/>
 					<TextInput
 						style={[styles.input, { flex: 1 }]}
 						placeholder="Last Name"
 						placeholderTextColor={"black"}
+						value={user.lastName}
+						onChangeText={(text) => setUser({ ...user, lastName: text })}
 					/>
 				</View>
 				<TextInput
 					style={[styles.input, { width: "80%", alignSelf: "flex-start" }]}
 					placeholder="Mobile Number"
 					placeholderTextColor={"black"}
+					value={user.mobileNumber}
+					onChangeText={(text) => {
+						if (text.startsWith("09")) {
+							setUser({ ...user, mobileNumber: text });
+						} else {
+							setUser({ ...user, mobileNumber: "09" });
+						}
+					}}
+					keyboardType="number-pad"
+					maxLength={11}
 				/>
 				<TextInput
 					style={styles.input}
 					placeholder="Email Address"
 					placeholderTextColor={"black"}
+					value={user.email}
+					onChangeText={(text) => setUser({ ...user, email: text })}
 				/>
 				<View style={styles.password}>
 					<TextInput
 						placeholder="Password"
 						placeholderTextColor="black"
 						secureTextEntry={!isPasswordVisible}
-						value={password}
-						onChangeText={setPassword}
+						value={user.password}
+						onChangeText={(text) => setUser({ ...user, password: text })}
 					/>
 					<TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
 						<MaterialCommunityIcons
@@ -59,12 +115,14 @@ const SignUpForm = () => {
 					style={[styles.input, { marginTop: 15 }]}
 					placeholder="Address"
 					placeholderTextColor={"black"}
+					value={user.address}
+					onChangeText={(text) => setUser({ ...user, address: text })}
 				/>
-				<Link replace href="login" asChild>
-					<TouchableOpacity style={styles.button}>
-						<Text style={{ color: "white", fontWeight: "bold" }}>Sign Up</Text>
-					</TouchableOpacity>
-				</Link>
+
+				<TouchableOpacity style={styles.button} onPress={handleSubmit}>
+					<Text style={{ color: "white", fontWeight: "bold" }}>Sign Up</Text>
+				</TouchableOpacity>
+
 				<Text style={[styles.text, { marginVertical: 10 }]}>or</Text>
 				<TouchableOpacity style={styles.google}>
 					<Image
@@ -91,6 +149,7 @@ const styles = StyleSheet.create({
 	container: {
 		backgroundColor: COLORS.background,
 		flex: 1,
+		justifyContent: "center",
 	},
 	eclipse: {
 		position: "absolute",
@@ -98,11 +157,11 @@ const styles = StyleSheet.create({
 		left: -50,
 	},
 	innerContainer: {
-		flex: 1,
 		alignItems: "center",
 		paddingHorizontal: 30,
 	},
 	text: {
+		zIndex: 10,
 		textAlign: "center",
 		fontWeight: "bold",
 		color: "black",
@@ -119,7 +178,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		marginBottom: 15,
-		padding: 5,
+		padding: 10,
 		backgroundColor: "white",
 		borderColor: "black",
 		borderWidth: 1,
@@ -133,7 +192,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: "black",
 		borderRadius: 5,
-		padding: 5,
+		padding: 10,
 		backgroundColor: "white",
 		width: "100%",
 	},

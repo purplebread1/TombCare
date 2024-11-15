@@ -1,9 +1,6 @@
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import "react-native-reanimated";
-import { UserStore } from "../../../../store";
-import { useStoreState } from "pullstate";
-
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
@@ -21,17 +18,6 @@ const VisitorStack = () => {
 	);
 };
 
-const WorkerStack = () => {
-	return (
-		<Stack>
-			<Stack.Screen name="servicehub" options={{ headerShown: false }} />
-			<Stack.Screen name="requestdetails" options={{ headerShown: false }} />
-		</Stack>
-	);
-};
-
 export default function ServiceLayout() {
-	const USER = useStoreState(UserStore);
-
-	return USER.type === "Cemetery Visitor" ? <VisitorStack /> : <WorkerStack />;
+	return <VisitorStack />;
 }

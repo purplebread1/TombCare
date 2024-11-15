@@ -1,17 +1,17 @@
 import { View, StyleSheet, Text, Image, TouchableOpacity } from "react-native";
 import { COLORS } from "../../../../constants/Colors";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { Entypo } from "@expo/vector-icons";
+import { UserStore, signOutUser } from "../../../../store";
+import { useStoreState } from "pullstate";
 
 const Profile = () => {
-	const user = {
-		id: 1,
-		picture: { uri: "https://source.unsplash.com/UpiF461EAHU" },
-		name: "Marco Deluna",
-		number: "09123456789",
-		email: "mdeluna@gmail.com",
-		address: "Purok 1, Barangay 2, Cebu City",
-		gender: "Male",
+	const USER = useStoreState(UserStore);
+	const DEFAULT_PROFILE_PIC = require("../../../../assets/images/default-profile-pic.jpg");
+
+	const handleLogout = async () => {
+		await signOutUser();
+		router.replace("/login");
 	};
 	return (
 		<View style={styles.container}>
@@ -23,41 +23,33 @@ const Profile = () => {
 			<View style={styles.innerContainer}>
 				<View style={{ flex: 1, width: "100%", padding: 10 }}>
 					<View style={{ flexDirection: "row", alignItems: "center", columnGap: 10 }}>
-						<Image source={user.picture} style={{ height: 100, width: 100, borderRadius: 100 }} />
+						<Image
+							source={USER.profilePic ? { uri: USER.profilePic } : DEFAULT_PROFILE_PIC}
+							style={{ height: 100, width: 100, borderRadius: 100 }}
+						/>
 						<View>
-							<Text style={styles.text}>{user.name}</Text>
-							<Text style={styles.text}>{user.number}</Text>
-							<Text style={styles.text}>{user.email}</Text>
+							<Text style={styles.text}>
+								{USER.firstName} {USER.lastName}
+							</Text>
+							<Text style={styles.text}>{USER.mobileNumber}</Text>
+							<Text style={styles.text}>{USER.email}</Text>
 						</View>
 					</View>
-					{/* <Link href="/service/orderconfirm" asChild> */}
-					<TouchableOpacity style={styles.button}>
-						<Text style={{ color: "black", fontSize: 16, fontWeight: "bold" }}>Edit Profile</Text>
-					</TouchableOpacity>
-					{/* </Link> */}
+					<Link href="/profile/edit" asChild>
+						<TouchableOpacity style={styles.button}>
+							<Text style={{ color: "black", fontSize: 16, fontWeight: "bold" }}>Edit Profile</Text>
+						</TouchableOpacity>
+					</Link>
 				</View>
-				<View
-					style={{
-						flex: 2,
-						width: "100%",
-						padding: 10,
-						marginVertical: 30,
-						backgroundColor: "white",
-						borderRadius: 10,
-					}}
-				>
+				<View style={styles.addressContainer}>
 					<Text style={[styles.text, { fontSize: 20 }]}>Address:</Text>
-					<Text style={styles.text}>{user.address}</Text>
-					<Text style={[styles.text, { fontSize: 20, marginTop: 10 }]}>Gender:</Text>
-					<Text style={styles.text}>{user.gender}</Text>
+					<Text style={styles.text}>{USER.address}</Text>
 				</View>
 				<View style={{ flex: 1, width: "100%", alignItems: "center" }}>
-					{/* <Link replace href="login"> */}
-					<TouchableOpacity style={{ alignItems: "center" }}>
+					<TouchableOpacity style={{ alignItems: "center" }} onPress={handleLogout}>
 						<Entypo name={"log-out"} size={35} color="black" />
 						<Text style={[styles.text, { fontSize: 14 }]}>Log-out</Text>
 					</TouchableOpacity>
-					{/* </Link> */}
 				</View>
 			</View>
 		</View>
@@ -101,6 +93,14 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 10,
 		paddingVertical: 10,
 		backgroundColor: COLORS.primary,
+		borderRadius: 10,
+	},
+	addressContainer: {
+		flex: 2,
+		width: "100%",
+		padding: 10,
+		marginVertical: 30,
+		backgroundColor: "white",
 		borderRadius: 10,
 	},
 });

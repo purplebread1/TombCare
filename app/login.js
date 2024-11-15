@@ -1,15 +1,26 @@
 import { useState } from "react";
 import { View, StyleSheet, Text, Image, TouchableOpacity, TextInput } from "react-native";
 import { COLORS } from "../constants/Colors";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { signIn } from "../store";
+import Loading from "../components/loading";
 
 const Login = () => {
+	const [loading, setLoading] = useState(false);
+	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-
+	const handleLogin = async () => {
+		setLoading(true);
+		const success = await signIn(email, password);
+		setLoading(false);
+		if (!success) return;
+		router.replace("/(tabs)/home");
+	};
 	return (
 		<View style={styles.container}>
+			{loading && <Loading />}
 			<Image style={styles.eclipse} source={require("../assets/images/eclipse.png")} />
 			<View style={styles.innerContainer}>
 				<Image style={{ marginBottom: 50 }} source={require("../assets/images/logo.png")} />
@@ -17,6 +28,8 @@ const Login = () => {
 					style={styles.input}
 					placeholder="Email Address"
 					placeholderTextColor={"black"}
+					value={email}
+					onChangeText={setEmail}
 				/>
 				<View style={styles.password}>
 					<TextInput
@@ -37,11 +50,11 @@ const Login = () => {
 				<TouchableOpacity>
 					<Text style={styles.forgotPassword}>Forgot Password?</Text>
 				</TouchableOpacity>
-				<Link replace href="/(tabs)/home" asChild>
-					<TouchableOpacity style={styles.button}>
-						<Text style={{ color: "white", fontWeight: "bold" }}>Log In</Text>
-					</TouchableOpacity>
-				</Link>
+				{/* <Link replace href="/(tabs)/home" asChild> */}
+				<TouchableOpacity style={styles.button} onPress={handleLogin}>
+					<Text style={{ color: "white", fontWeight: "bold" }}>Log In</Text>
+				</TouchableOpacity>
+				{/* </Link> */}
 				<Text style={[styles.text, { marginVertical: 10 }]}>or</Text>
 				<TouchableOpacity style={styles.google}>
 					<Image
@@ -53,7 +66,7 @@ const Login = () => {
 				</TouchableOpacity>
 				<Text style={[styles.text, { marginTop: 50 }]}>
 					Don't have an account?{" "}
-					<Link href="signup" style={[styles.text, { color: COLORS.primary }]}>
+					<Link href="signupform" style={[styles.text, { color: COLORS.primary }]}>
 						Sign Up
 					</Link>
 				</Text>
@@ -103,20 +116,20 @@ const styles = StyleSheet.create({
 	input: {
 		marginBottom: 20,
 		width: 250,
-		padding: 5,
+		padding: 10,
 		backgroundColor: "white",
 		borderColor: "black",
 		borderWidth: 1,
 		borderRadius: 5,
 	},
 	password: {
+		padding: 10,
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",
 		borderWidth: 1,
 		borderColor: "black",
 		borderRadius: 5,
-		padding: 5,
 		backgroundColor: "white",
 		width: 250,
 	},

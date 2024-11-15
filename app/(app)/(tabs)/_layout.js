@@ -9,7 +9,7 @@ export default function TabLayout() {
 			screenOptions={{
 				tabBarActiveTintColor: "black",
 				tabBarInactiveTintColor: "black",
-				tabBarShowLabel: false,
+				tabBarShowLabel: true,
 				tabBarActiveBackgroundColor: COLORS.lightPink,
 				tabBarInactiveBackgroundColor: COLORS.pink,
 				headerShown: false,
@@ -19,6 +19,7 @@ export default function TabLayout() {
 				name="home/index"
 				options={{
 					tabBarIcon: ({ color }) => <Ionicons name={"home"} color={color} size={25} />,
+					tabBarLabel: "Home",
 				}}
 			/>
 			<Tabs.Screen
@@ -27,6 +28,7 @@ export default function TabLayout() {
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons name={"shovel"} color={color} size={25} />
 					),
+					tabBarLabel: "Service",
 				}}
 			/>
 			<Tabs.Screen
@@ -35,6 +37,7 @@ export default function TabLayout() {
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons name={"message-processing"} color={color} size={25} />
 					),
+					tabBarLabel: "Messages",
 				}}
 			/>
 			<Tabs.Screen
@@ -43,12 +46,14 @@ export default function TabLayout() {
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons name={"bell-ring"} color={color} size={25} />
 					),
+					tabBarLabel: "Notifications",
 				}}
 			/>
 			<Tabs.Screen
-				name="profile/index"
+				name="profile"
 				options={{
 					tabBarIcon: ({ color }) => <FontAwesome name={"user-circle-o"} color={color} size={25} />,
+					tabBarLabel: "Profile",
 				}}
 			/>
 		</Tabs>

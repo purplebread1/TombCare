@@ -10,6 +10,7 @@ const Signup = () => {
 		});
 		router.navigate("signupform");
 	};
+
 	return (
 		<View style={styles.container}>
 			<Image style={styles.eclipse} source={require("../assets/images/eclipse.png")} />
