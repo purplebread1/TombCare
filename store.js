@@ -1,7 +1,18 @@
 import { Store } from "pullstate";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { FIREBASE_AUTH, FIRESTORE_DB, FIREBASE_STORAGE } from "./firebaseConfig";
-import { doc, setDoc, getDoc, collection } from "firebase/firestore";
+import {
+	doc,
+	setDoc,
+	getDoc,
+	collection,
+	query,
+	where,
+	getDocs,
+	Timestamp,
+	addDoc,
+	orderBy,
+} from "firebase/firestore";
 import { ref, getDownloadURL, deleteObject } from "firebase/storage";
 
 export const UserStore = new Store({
@@ -110,5 +121,72 @@ export const updateUser = async (user) => {
 	} catch (error) {
 		console.log(error);
 		alert("Update failed!");
+	}
+};
+
+export const fetchServices = async (type) => {
+	try {
+		const servicesRef = collection(FIRESTORE_DB, "service");
+		const q = query(servicesRef, where("serviceType", "==", type));
+		const querySnapshot = await getDocs(q);
+		const services = [];
+		querySnapshot.forEach((doc) => {
+			services.push({ id: doc.id, ...doc.data() });
+		});
+		return services;
+	} catch (error) {
+		console.log(error);
+		alert("Failed to fetch services!");
+		return [];
+	}
+};
+
+export const addTransaction = async (data) => {
+	try {
+		const transactionRef = collection(FIRESTORE_DB, "transactions");
+		const newTransactionRef = doc(transactionRef);
+		await setDoc(newTransactionRef, {
+			...data,
+			created: Timestamp.now(),
+		});
+		return true;
+	} catch (error) {
+		console.log(error);
+		return false;
+	}
+};
+
+export const addRecord = async (data) => {
+	try {
+		const recordsRef = collection(FIRESTORE_DB, "records");
+		const docRef = await addDoc(recordsRef, {
+			...data,
+			dateOfBirth: Timestamp.fromDate(new Date(data.dateOfBirth)),
+			dateOfBurial: Timestamp.fromDate(new Date(data.dateOfBurial)),
+			dateOfDeath: Timestamp.fromDate(new Date(data.dateOfDeath)),
+			created: Timestamp.now(),
+		});
+		console.log("Record added with ID:", docRef.id);
+		return docRef.id; // Return the document ID
+	} catch (error) {
+		console.error("Error adding record:", error);
+		return null;
+	}
+};
+
+export const fetchRecords = async () => {
+	try {
+		const recordsRef = collection(FIRESTORE_DB, "records");
+		const q = query(recordsRef, where("approved", "==", true));
+		const querySnapshot = await getDocs(q);
+		const records = [];
+		querySnapshot.forEach((doc) => {
+			records.push({ id: doc.id, ...doc.data() });
+		});
+		return records;
+	} catch (error) {
+		console.log(error);
+		alert("Failed to fetch records!");
+		return [];
 	}
 };

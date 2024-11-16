@@ -28,16 +28,16 @@ export default function TabLayout() {
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons name={"shovel"} color={color} size={25} />
 					),
-					tabBarLabel: "Service",
+					tabBarLabel: "Services",
 				}}
 			/>
 			<Tabs.Screen
-				name="messaging"
+				name="orders"
 				options={{
 					tabBarIcon: ({ color }) => (
-						<MaterialCommunityIcons name={"message-processing"} color={color} size={25} />
+						<MaterialCommunityIcons name={"clipboard-text"} color={color} size={25} />
 					),
-					tabBarLabel: "Messages",
+					tabBarLabel: "Orders",
 				}}
 			/>
 			<Tabs.Screen

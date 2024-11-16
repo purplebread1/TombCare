@@ -7,13 +7,10 @@ SplashScreen.preventAutoHideAsync();
 const VisitorStack = () => {
 	return (
 		<Stack>
-			<Stack.Screen name="select" options={{ headerShown: false }} />
-			<Stack.Screen name="maintenance" options={{ headerShown: false }} />
-			<Stack.Screen name="excavation" options={{ headerShown: false }} />
-			<Stack.Screen name="constructdig" options={{ headerShown: false }} />
+			<Stack.Screen name="index" options={{ headerShown: false }} />
+			<Stack.Screen name="tombservices" options={{ headerShown: false }} />
+			<Stack.Screen name="lotservices" options={{ headerShown: false }} />
 			<Stack.Screen name="orderconfirm" options={{ headerShown: false }} />
-			<Stack.Screen name="orders" options={{ headerShown: false }} />
-			<Stack.Screen name="requestburial" options={{ headerShown: false }} />
 		</Stack>
 	);
 };
