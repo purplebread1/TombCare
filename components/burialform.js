@@ -5,10 +5,12 @@ import { Link, router } from "expo-router";
 import { AntDesign, Feather } from "@expo/vector-icons";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { CheckBox } from "@rneui/themed";
+import * as ImagePicker from "expo-image-picker";
 
 const BurialForm = ({ onFormDataChange }) => {
 	const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 	const [activeDateField, setActiveDateField] = useState(null);
+	const [image, setImage] = useState(null);
 
 	const [formData, setFormData] = useState({
 		firstName: "",
@@ -22,12 +24,23 @@ const BurialForm = ({ onFormDataChange }) => {
 		approved: false,
 	});
 
+	useEffect(() => {
+		getPermissions();
+	}, []);
+
+	const getPermissions = async () => {
+		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+		if (status !== "granted") {
+			alert("Sorry, we need camera roll permissions to make this work!");
+		}
+	};
+
 	// Notify parent whenever formData changes
 	useEffect(() => {
 		if (onFormDataChange) {
-			onFormDataChange(formData);
+			onFormDataChange(formData, image);
 		}
-	}, [formData]);
+	}, [formData, image]);
 
 	// Show the date picker and specify which field to update
 	const showDatePicker = (field) => {
@@ -40,6 +53,19 @@ const BurialForm = ({ onFormDataChange }) => {
 		setDatePickerVisibility(false);
 	};
 
+	// Pick image for profile picture
+	const pickImage = async () => {
+		let result = await ImagePicker.launchImageLibraryAsync({
+			mediaTypes: ["images"],
+			allowsEditing: true,
+			quality: 1,
+		});
+
+		if (!result.canceled) {
+			setImage(result.assets[0]);
+		}
+	};
+
 	// Handle the selected date
 	const handleConfirm = (date) => {
 		const formattedDate = date.toISOString().split("T")[0];
@@ -49,6 +75,7 @@ const BurialForm = ({ onFormDataChange }) => {
 		}));
 		hideDatePicker();
 	};
+
 	return (
 		<View style={styles.container}>
 			<Text style={styles.text}>Enter information of the Deceased</Text>
@@ -136,9 +163,18 @@ const BurialForm = ({ onFormDataChange }) => {
 			<Text style={{ fontWeight: "bold", marginBottom: 5 }}>
 				Upload Picture of Death Certificate:
 			</Text>
-			<TouchableOpacity style={styles.input}>
+			<TouchableOpacity style={styles.input} onPress={pickImage}>
 				<Feather style={{ alignSelf: "flex-end" }} name={"upload"} size={24} color="black" />
 			</TouchableOpacity>
+			{image?.uri && (
+				<View style={{ height: 300, width: "100%", marginBottom: 10 }}>
+					<Image
+						source={{ uri: image?.uri }}
+						style={{ height: "100%", width: "100%" }}
+						resizeMode="contain"
+					/>
+				</View>
+			)}
 			<DateTimePickerModal
 				isVisible={isDatePickerVisible}
 				mode="date"

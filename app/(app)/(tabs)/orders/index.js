@@ -7,12 +7,15 @@ import {
 	TouchableOpacity,
 	ScrollView,
 	RefreshControl,
+	ActivityIndicator,
+	Linking,
 } from "react-native";
 import { COLORS } from "../../../../constants/Colors";
 import { useStoreState } from "pullstate";
-import { fetchOrders, UserStore } from "../../../../store";
+import { UserStore } from "../../../../store";
 import { FIRESTORE_DB } from "../../../../firebaseConfig";
 import { collection, query, where, orderBy, onSnapshot, getDocs } from "firebase/firestore";
+import { Link, router } from "expo-router";
 
 const Orders = () => {
 	const USER = useStoreState(UserStore);
@@ -68,21 +71,76 @@ const Orders = () => {
 		}
 	};
 
+	const handlePayment = async (order) => {
+		const total = order.amount.toString() + "00";
+		const options = {
+			method: "POST",
+			headers: {
+				accept: "application/json",
+				"Content-Type": "application/json",
+				authorization: "Basic c2tfdGVzdF9DY1FBTFBhS3BtSmF2R2hVTExhd3FQckY6",
+			},
+			body: JSON.stringify({
+				data: {
+					attributes: {
+						billing: {
+							name: USER.firstName + " " + USER.lastName,
+							email: USER.email,
+						},
+						send_email_receipt: false,
+						show_line_items: true,
+						line_items: [
+							{ amount: Number(total), currency: "PHP", name: order.serviceName, quantity: 1 },
+						],
+						payment_method_types: ["gcash", "paymaya"],
+						success_url: "https://www.google.com",
+						cancel_url: "https://www.facebook.com",
+					},
+				},
+			}),
+		};
+
+		fetch("https://api.paymongo.com/v1/checkout_sessions", options)
+			.then((res) => res.json())
+			.then((res) => {
+				if (res.data && res.data.attributes && res.data.attributes.checkout_url) {
+					const checkoutUrl = res.data.attributes.checkout_url;
+					// Navigate to PaymentScreen with checkout URL
+					if (checkoutUrl) {
+						router.push({
+							pathname: "/orders/payment",
+							params: { checkoutUrl: checkoutUrl, orderID: order.id },
+						});
+					}
+				}
+			})
+			.catch((err) => console.error("Error creating checkout session:", err));
+	};
+
 	const Services = () => (
 		<View style={styles.serviceContainer}>
 			{orders.map((order, index) => (
 				<View key={index} style={styles.button}>
 					{order.status === "On-Going" && (
-						<TouchableOpacity
-							style={{
-								position: "absolute",
-								top: 10,
-								right: 20,
-								zIndex: 10,
+						<Link
+							key={index}
+							href={{
+								pathname: "/orders/messaging",
+								params: { transactionId: order.id },
 							}}
+							asChild
 						>
-							<Text style={{ color: COLORS.neongreen, fontWeight: "bold" }}>Message</Text>
-						</TouchableOpacity>
+							<TouchableOpacity
+								style={{
+									position: "absolute",
+									top: 10,
+									right: 20,
+									zIndex: 10,
+								}}
+							>
+								<Text style={{ color: COLORS.neongreen, fontWeight: "bold" }}>Message</Text>
+							</TouchableOpacity>
+						</Link>
 					)}
 					{order.status === "Completed" && (
 						<>
@@ -96,7 +154,7 @@ const Orders = () => {
 									Paid
 								</Text>
 							) : (
-								<TouchableOpacity style={styles.completed}>
+								<TouchableOpacity onPress={() => handlePayment(order)} style={styles.completed}>
 									<Text style={{ color: COLORS.neongreen, fontWeight: "bold", fontSize: 15 }}>
 										Go to Payment
 									</Text>

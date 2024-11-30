@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "178689170689",
+    "project_id": "tombcare-601bc",
+    "storage_bucket": "tombcare-601bc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:178689170689:android:f813cbc72f3a9eed30cf00",
+        "android_client_info": {
+          "package_name": "com.purple.TombCare"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "178689170689-02ovlbn1mjmpvpboe5s56gbufkb5n6rh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.purple.TombCare",
+            "certificate_hash": "781d3ffa9abfdc0eab6dd5e2cdfc6c9b149163c2"
+          }
+        },
+        {
+          "client_id": "178689170689-9q1hn183qn631a39vf3sb8gnbu00mm9e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlpSLfdMJ_4lSa8W194Fo2iDs9-hQDvTc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "178689170689-9q1hn183qn631a39vf3sb8gnbu00mm9e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

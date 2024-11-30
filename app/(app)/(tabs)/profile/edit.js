@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View, StyleSheet, Text, Image, TouchableOpacity, TextInput } from "react-native";
 import { COLORS } from "../../../../constants/Colors";
 import { Link, router } from "expo-router";
@@ -6,6 +6,9 @@ import { AntDesign } from "@expo/vector-icons";
 import { UserStore, updateUser } from "../../../../store";
 import { useStoreState } from "pullstate";
 import Loading from "../../../../components/loading";
+import * as ImagePicker from "expo-image-picker";
+import { ref, getDownloadURL, uploadBytes } from "firebase/storage";
+import { FIREBASE_STORAGE } from "../../../../firebaseConfig";
 
 const EditProfile = () => {
 	const USER = useStoreState(UserStore);
@@ -13,13 +16,86 @@ const EditProfile = () => {
 
 	const [user, setUser] = useState(USER);
 	const [loading, setLoading] = useState(false);
+	const [image, setImage] = useState(null); // Store image URI
+
+	useEffect(() => {
+		getPermissions();
+	}, []);
+
+	const getPermissions = async () => {
+		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+		if (status !== "granted") {
+			alert("Sorry, we need camera roll permissions to make this work!");
+		}
+	};
 
 	const handleUpdate = async () => {
 		setLoading(true);
-		await updateUser(user);
+
+		let imageUrl = "";
+		// If an image is selected, upload it
+		if (image.uri) {
+			try {
+				imageUrl = await uploadImage(image.uri, user.id);
+			} catch (error) {
+				console.error(error);
+				alert("Failed to upload image.");
+				setLoading(false);
+				return;
+			}
+		}
+
+		// Update user data
+		await updateUser({ ...user, profilePic: imageUrl });
 		alert("Profile updated successfully!");
 		setLoading(false);
-		router.back();
+		router.replace("/profile");
+	};
+
+	// Pick image for profile picture
+	const pickImage = async () => {
+		let result = await ImagePicker.launchImageLibraryAsync({
+			mediaTypes: ["images"],
+			allowsEditing: true,
+			aspect: [1, 1],
+			quality: 1,
+		});
+
+		if (!result.canceled) {
+			setImage(result.assets[0]);
+		}
+	};
+
+	// Upload image to Firebase Storage
+	const uploadImage = async (uri, uid) => {
+		const blob = await new Promise((resolve, reject) => {
+			const xhr = new XMLHttpRequest();
+			xhr.onload = function () {
+				resolve(xhr.response);
+			};
+			xhr.onerror = function (e) {
+				console.log(e);
+				reject(new TypeError("Network request failed"));
+			};
+			xhr.responseType = "blob";
+			xhr.open("GET", uri, true);
+			xhr.send(null);
+		});
+
+		if (!blob) {
+			throw new Error("Blob conversion failed.");
+		}
+
+		const filename = "Profile/" + uid + "-profilePic";
+		const storageRef = ref(FIREBASE_STORAGE, filename);
+
+		// const uploadTask = uploadBytesResumable(storageRef, blob);
+		await uploadBytes(storageRef, blob);
+
+		// We're done with the blob, close and release it
+		blob.close();
+
+		return await getDownloadURL(storageRef);
 	};
 
 	return (
@@ -43,10 +119,16 @@ const EditProfile = () => {
 					}}
 				>
 					<Image
-						source={USER.profilePic ? { uri: USER.profilePic } : DEFAULT_PROFILE_PIC}
+						source={
+							image
+								? { uri: image.uri }
+								: USER.profilePic
+								? { uri: USER.profilePic }
+								: DEFAULT_PROFILE_PIC
+						}
 						style={{ height: 100, width: 100, borderRadius: 100 }}
 					/>
-					<TouchableOpacity style={styles.button}>
+					<TouchableOpacity onPress={pickImage} style={styles.button}>
 						<Text style={{ color: "black", fontSize: 16, fontWeight: "bold" }}>Upload Picture</Text>
 					</TouchableOpacity>
 				</View>

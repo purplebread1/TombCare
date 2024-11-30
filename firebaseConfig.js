@@ -15,7 +15,7 @@ const firebaseConfig = {
 	apiKey: "AIzaSyAtPQYpK9Ad1uB3xTljsdB7ReJO46hMCqQ",
 	authDomain: "tombcare-601bc.firebaseapp.com",
 	projectId: "tombcare-601bc",
-	storageBucket: "tombcare-601bc.appspot.com",
+	storageBucket: "tombcare-601bc.firebasestorage.app",
 	messagingSenderId: "178689170689",
 	appId: "1:178689170689:web:c62227cb4afb529730cf00",
 	measurementId: "G-GPQSBNE74F",

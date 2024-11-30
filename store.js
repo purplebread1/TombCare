@@ -12,8 +12,11 @@ import {
 	Timestamp,
 	addDoc,
 	orderBy,
+	updateDoc,
 } from "firebase/firestore";
 import { ref, getDownloadURL, deleteObject } from "firebase/storage";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import * as Notifications from "expo-notifications";
 
 export const UserStore = new Store({
 	id: "",
@@ -70,6 +73,7 @@ export const signIn = async (email, password) => {
 			});
 		} else {
 			console.log("User does not exist!");
+			throw new Error();
 		}
 	} catch (error) {
 		console.log(error.code);
@@ -79,9 +83,55 @@ export const signIn = async (email, password) => {
 	return true;
 };
 
+export const googleSignUp = async (uid, user) => {
+	try {
+		const userRef = doc(FIRESTORE_DB, "users", uid); // DocumentReference for searching
+		const userDocRef = doc(collection(FIRESTORE_DB, "users"), uid); // Create a DocumentReference using the user's UID if new
+		const docSnapshot = await getDoc(userRef);
+		if (!docSnapshot.exists()) {
+			await setDoc(userDocRef, {
+				uid: uid,
+				firstName: user.givenName,
+				lastName: user.familyName,
+				mobileNumber: "",
+				email: user.email,
+				profilePic: user.photo,
+				address: "",
+			});
+			UserStore.update((s) => {
+				s.id = uid;
+				s.firstName = user.givenNam;
+				s.lastName = user.familyName;
+				s.email = user.email;
+				s.mobileNumber = "";
+				s.address = "";
+				s.profilePic = user.photo;
+			});
+			return true; // if new user
+		} else {
+			const userData = docSnapshot.data();
+			UserStore.update((s) => {
+				s.id = uid;
+				s.firstName = userData.firstName;
+				s.lastName = userData.lastName;
+				s.email = userData.email;
+				s.mobileNumber = userData.mobileNumber;
+				s.address = userData.address;
+				s.profilePic = userData.profilePic;
+			});
+		}
+		return false;
+	} catch (error) {
+		console.log(error);
+		alert("Sign up failed!");
+	}
+};
+
 export const signOutUser = async () => {
 	try {
 		await signOut(FIREBASE_AUTH);
+		GoogleSignin.revokeAccess();
+		GoogleSignin.signOut();
 		UserStore.update((s) => {
 			s.id = "";
 			s.firstName = "";
@@ -124,6 +174,19 @@ export const updateUser = async (user) => {
 	}
 };
 
+export const updatePaid = async (orderID) => {
+	try {
+		const orderRef = doc(FIRESTORE_DB, "transactions", orderID);
+		await updateDoc(orderRef, {
+			paid: true,
+		});
+
+		console.log("Order marked as paid successfully!");
+	} catch (error) {
+		console.error("Error updating payment status:", error);
+	}
+};
+
 export const fetchServices = async (type) => {
 	try {
 		const servicesRef = collection(FIRESTORE_DB, "service");
@@ -142,16 +205,19 @@ export const fetchServices = async (type) => {
 };
 
 export const addTransaction = async (data) => {
+	const token = await getExpoPushToken();
 	try {
 		const transactionRef = collection(FIRESTORE_DB, "transactions");
-		const newTransactionRef = doc(transactionRef);
+		const newTransactionRef = doc(transactionRef); // Generate a new document ID
 		await setDoc(newTransactionRef, {
 			...data,
 			created: Timestamp.now(),
+			expoPushToken: token,
 		});
-		return true;
+
+		return true; // Return the transaction ID
 	} catch (error) {
-		console.log(error);
+		console.error(error);
 		return false;
 	}
 };
@@ -189,4 +255,20 @@ export const fetchRecords = async () => {
 		alert("Failed to fetch records!");
 		return [];
 	}
+};
+
+const getExpoPushToken = async () => {
+	const projectId = "56c065fb-491e-495d-a8a7-5b1c22cf3288";
+
+	try {
+		const pushTokenString = (
+			await Notifications.getExpoPushTokenAsync({
+				projectId,
+			})
+		).data;
+		return pushTokenString;
+	} catch (error) {
+		console.log(error);
+	}
+	return null;
 };

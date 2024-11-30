@@ -4,6 +4,7 @@ import { Link, router } from "expo-router";
 import { Entypo } from "@expo/vector-icons";
 import { UserStore, signOutUser } from "../../../../store";
 import { useStoreState } from "pullstate";
+import Loading from "../../../../components/loading";
 
 const Profile = () => {
 	const USER = useStoreState(UserStore);
@@ -15,6 +16,7 @@ const Profile = () => {
 	};
 	return (
 		<View style={styles.container}>
+			{!USER?.id && <Loading />}
 			<Image style={styles.eclipse} source={require("../../../../assets/images/eclipse.png")} />
 			{/* Header */}
 			<View style={styles.header}>
@@ -31,7 +33,7 @@ const Profile = () => {
 							<Text style={styles.text}>
 								{USER.firstName} {USER.lastName}
 							</Text>
-							<Text style={styles.text}>{USER.mobileNumber}</Text>
+							<Text style={styles.text}>{USER.mobileNumber || "No number set"}</Text>
 							<Text style={styles.text}>{USER.email}</Text>
 						</View>
 					</View>
@@ -43,7 +45,7 @@ const Profile = () => {
 				</View>
 				<View style={styles.addressContainer}>
 					<Text style={[styles.text, { fontSize: 20 }]}>Address:</Text>
-					<Text style={styles.text}>{USER.address}</Text>
+					<Text style={styles.text}>{USER.address || "No address set"}</Text>
 				</View>
 				<View style={{ flex: 1, width: "100%", alignItems: "center" }}>
 					<TouchableOpacity style={{ alignItems: "center" }} onPress={handleLogout}>

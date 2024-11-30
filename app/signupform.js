@@ -5,6 +5,7 @@ import Loading from "../components/loading";
 import { Link, router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { signUp } from "../store";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 const SignUpForm = () => {
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -54,9 +55,12 @@ const SignUpForm = () => {
 	return (
 		<View style={styles.container}>
 			{loading && <Loading />}
-			<Text style={[styles.text, { fontSize: 20, marginBottom: 20 }]}>Sign Up</Text>
+			<Text style={[styles.text, { fontSize: 20, marginVertical: 20 }]}>Sign Up</Text>
 			<Image style={styles.eclipse} source={require("../assets/images/eclipse.png")} />
-			<View style={styles.innerContainer}>
+			<KeyboardAwareScrollView
+				showsVerticalScrollIndicator={false}
+				contentContainerStyle={styles.innerContainer}
+			>
 				<View style={{ flexDirection: "row", columnGap: 10 }}>
 					<TextInput
 						style={[styles.input, { flex: 1 }]}
@@ -138,7 +142,7 @@ const SignUpForm = () => {
 						Login
 					</Link>
 				</Text>
-			</View>
+			</KeyboardAwareScrollView>
 		</View>
 	);
 };

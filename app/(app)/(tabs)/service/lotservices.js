@@ -16,6 +16,8 @@ import Dropdown from "../../../../components/dropdown";
 import RequestBurial from "../../../../components/burialform";
 import Loading from "../../../../components/loading";
 import { useStoreState } from "pullstate";
+import { ref, getDownloadURL, uploadBytes } from "firebase/storage";
+import { FIREBASE_STORAGE } from "../../../../firebaseConfig";
 
 const LotServices = () => {
 	const USER = useStoreState(UserStore);
@@ -51,22 +53,28 @@ const LotServices = () => {
 		);
 	};
 
-	const handleBurialForm = (data) => {
-		setRecord(data);
-		console.log("Received formData:", data);
+	const handleBurialForm = (data, deathCertImage) => {
+		setRecord({ ...data, deathCertificate: deathCertImage || "" });
+		console.log("Received formData:", {
+			...data,
+			deathCertificate: deathCertImage ? deathCertImage : "",
+		});
 	};
 
 	const handleOrderClick = async () => {
+		console.log("1");
 		if (!transaction.serviceID || !transaction.serviceName || !transaction.lotID) {
 			alert("Please fill out all fields!");
 			return;
 		}
+		console.log("lo");
+
 		if (
 			transaction.serviceName === "Request Burial" &&
 			record &&
 			Object.entries(record).some(([key, value]) => {
-				if (key !== "approved" && key !== "deathCertificate") {
-					return value === "" || value == null || value.trim() === "";
+				if (key !== "approved") {
+					return value === "" || value == null;
 				}
 				return false;
 			})
@@ -75,11 +83,30 @@ const LotServices = () => {
 			return;
 		}
 		setLoading(true);
+		console.log("hello");
 
 		try {
 			let addTransactionSuccess = false;
 			if (transaction.serviceName === "Request Burial") {
-				const recordId = await addRecord(record);
+				// Upload the death certificate image if provided
+				let deathCertificateURL = "";
+				if (record.deathCertificate?.uri) {
+					console.log("here!");
+					try {
+						deathCertificateURL = await uploadImage(record.deathCertificate.uri, record.lastName);
+					} catch (error) {
+						alert("Failed to upload death certificate.");
+						console.error(error);
+						setLoading(false);
+						return;
+					}
+				}
+
+				// Update record with the uploaded URL
+				const updatedRecord = { ...record, deathCertificate: deathCertificateURL };
+
+				// Add the burial record and get the record ID
+				const recordId = await addRecord(updatedRecord);
 				if (!recordId) throw new Error();
 
 				addTransactionSuccess = await addTransaction({ ...transaction, recordID: recordId });
@@ -98,6 +125,38 @@ const LotServices = () => {
 		} finally {
 			setLoading(false);
 		}
+	};
+
+	const uploadImage = async (uri, lastName) => {
+		const blob = await new Promise((resolve, reject) => {
+			const xhr = new XMLHttpRequest();
+			xhr.onload = function () {
+				resolve(xhr.response);
+			};
+			xhr.onerror = function (e) {
+				console.log(e);
+				reject(new TypeError("Network request failed"));
+			};
+			xhr.responseType = "blob";
+			xhr.open("GET", uri, true);
+			xhr.send(null);
+		});
+
+		if (!blob) {
+			throw new Error("Blob conversion failed.");
+		}
+
+		const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+		const filename = "Records/" + lastName + uniqueId;
+		const storageRef = ref(FIREBASE_STORAGE, filename);
+
+		// const uploadTask = uploadBytesResumable(storageRef, blob);
+		await uploadBytes(storageRef, blob);
+
+		// We're done with the blob, close and release it
+		blob.close();
+
+		return await getDownloadURL(storageRef);
 	};
 
 	return (
