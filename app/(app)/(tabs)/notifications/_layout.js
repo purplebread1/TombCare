@@ -5,11 +5,10 @@ import "react-native-reanimated";
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-export default function OrdersLayout() {
+export default function NotificationsLayout() {
 	return (
 		<Stack>
 			<Stack.Screen name="index" options={{ headerShown: false }} />
-			<Stack.Screen name="payment" options={{ headerShown: false }} />
 			<Stack.Screen name="messaging" options={{ headerShown: false }} />
 		</Stack>
 	);

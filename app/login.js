@@ -73,6 +73,7 @@ const Login = () => {
 				/>
 				<View style={styles.password}>
 					<TextInput
+						style={{ flex: 1 }}
 						placeholder="Password"
 						placeholderTextColor="black"
 						secureTextEntry={!isPasswordVisible}

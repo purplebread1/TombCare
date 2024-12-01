@@ -28,6 +28,11 @@ export const UserStore = new Store({
 	profilePic: "",
 });
 
+export const LocationStore = new Store({
+	latitude: 0,
+	longitude: 0,
+});
+
 export const signUp = async (user) => {
 	try {
 		const response = await createUserWithEmailAndPassword(FIREBASE_AUTH, user.email, user.password);
@@ -205,14 +210,12 @@ export const fetchServices = async (type) => {
 };
 
 export const addTransaction = async (data) => {
-	const token = await getExpoPushToken();
 	try {
 		const transactionRef = collection(FIRESTORE_DB, "transactions");
 		const newTransactionRef = doc(transactionRef); // Generate a new document ID
 		await setDoc(newTransactionRef, {
 			...data,
 			created: Timestamp.now(),
-			expoPushToken: token,
 		});
 
 		return true; // Return the transaction ID
@@ -257,6 +260,48 @@ export const fetchRecords = async () => {
 	}
 };
 
+export const fetchRegisteredTombs = async (id) => {
+	try {
+		const recordsRef = collection(FIRESTORE_DB, "records");
+		const q = query(
+			recordsRef,
+			where("approved", "==", true),
+			where("privacy", "==", "Public"),
+			where("registeredBy", "==", id)
+		);
+		const querySnapshot = await getDocs(q);
+		const records = [];
+		querySnapshot.forEach((doc) => {
+			records.push({ id: doc.id, ...doc.data() });
+		});
+		return records;
+	} catch (error) {
+		console.log(error);
+		alert("Failed to fetch records!");
+		return [];
+	}
+};
+
+export const savePushToken = async (id) => {
+	try {
+		const token = await getExpoPushToken();
+		if (!token) {
+			console.log("Failed to retrieve push token.");
+			return;
+		}
+
+		// Create a reference to the document in the tokens collection
+		const docRef = doc(FIRESTORE_DB, "tokens", id);
+
+		// Add or update the document with the token property
+		await setDoc(docRef, { token }, { merge: true });
+
+		console.log("Push token saved successfully.");
+	} catch (error) {
+		console.error("Error saving push token:", error);
+	}
+};
+
 const getExpoPushToken = async () => {
 	const projectId = "56c065fb-491e-495d-a8a7-5b1c22cf3288";
 
@@ -266,6 +311,7 @@ const getExpoPushToken = async () => {
 				projectId,
 			})
 		).data;
+		console.log("Expo push token:", pushTokenString);
 		return pushTokenString;
 	} catch (error) {
 		console.log(error);

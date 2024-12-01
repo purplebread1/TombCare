@@ -103,7 +103,13 @@ const LotServices = () => {
 				}
 
 				// Update record with the uploaded URL
-				const updatedRecord = { ...record, deathCertificate: deathCertificateURL };
+				const updatedRecord = {
+					...record,
+					lotID: transaction.lotID,
+					tombID: "", // assigned by management
+					deathCertificate: deathCertificateURL,
+					registeredBy: USER.id,
+				};
 
 				// Add the burial record and get the record ID
 				const recordId = await addRecord(updatedRecord);

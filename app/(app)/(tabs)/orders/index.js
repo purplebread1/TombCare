@@ -16,6 +16,7 @@ import { UserStore } from "../../../../store";
 import { FIRESTORE_DB } from "../../../../firebaseConfig";
 import { collection, query, where, orderBy, onSnapshot, getDocs } from "firebase/firestore";
 import { Link, router } from "expo-router";
+import Loading from "../../../../components/loading";
 
 const Orders = () => {
 	const USER = useStoreState(UserStore);
@@ -195,6 +196,7 @@ const Orders = () => {
 			<View style={styles.header}>
 				<Text style={{ color: "white", fontSize: 24, fontWeight: "bold" }}>Your Orders</Text>
 			</View>
+			{loading && <Loading />}
 			{/* Content */}
 			<ScrollView
 				showsVerticalScrollIndicator={false}

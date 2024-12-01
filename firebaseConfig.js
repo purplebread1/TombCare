@@ -36,3 +36,6 @@ export const FIREBASE_AUTH = initializeAuth(FIREBASE_APP, {
 });
 export const FIREBASE_STORAGE = getStorage(FIREBASE_APP);
 export const auth = getAuth(FIREBASE_APP);
+
+// mapbox secret sk.eyJ1IjoiYW1hcmlsbG9zaGlubGVlIiwiYSI6ImNtNDR3OHAxOTBzM2QyaXF4NHNqbHJyNmwifQ.Yia19fBKq4ZgFGlhA6C9GQ
+// mapbox public pk.eyJ1IjoiYW1hcmlsbG9zaGlubGVlIiwiYSI6ImNtMW5mdHpkeDB2ZzUyanF4ZTg5dWF0eGQifQ.4u_01jtvmOf7x573iMqFUg

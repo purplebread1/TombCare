@@ -34,9 +34,9 @@ const EditProfile = () => {
 
 		let imageUrl = "";
 		// If an image is selected, upload it
-		if (image.uri) {
+		if (image?.uri) {
 			try {
-				imageUrl = await uploadImage(image.uri, user.id);
+				imageUrl = await uploadImage(image?.uri, user.id);
 			} catch (error) {
 				console.error(error);
 				alert("Failed to upload image.");
@@ -46,7 +46,11 @@ const EditProfile = () => {
 		}
 
 		// Update user data
-		await updateUser({ ...user, profilePic: imageUrl });
+		const data = { ...user };
+		if (imageUrl !== "") {
+			data.profilePic = imageUrl;
+		}
+		await updateUser(data);
 		alert("Profile updated successfully!");
 		setLoading(false);
 		router.replace("/profile");

@@ -36,6 +36,18 @@
 				{
 					"photosPermission": "Allow TombCare to access your photos."
 				}
+			],
+			[
+				"@rnmapbox/maps",
+				{
+					"RNMapboxMapsDownloadToken": "sk.eyJ1IjoiYW1hcmlsbG9zaGlubGVlIiwiYSI6ImNtNDR3OHAxOTBzM2QyaXF4NHNqbHJyNmwifQ.Yia19fBKq4ZgFGlhA6C9GQ"
+				}
+			],
+			[
+				"expo-location",
+				{
+					"locationAlwaysAndWhenInUsePermission": "Allow TombCare to use your location."
+				}
 			]
 		],
 		"experiments": {
