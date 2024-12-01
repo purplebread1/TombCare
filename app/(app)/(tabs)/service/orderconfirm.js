@@ -50,11 +50,9 @@ const OrderConfirm = () => {
 							</View>
 						</View>
 					</View>
-					{/* <Link replace href="/messaging/index" asChild> */}
 					<TouchableOpacity style={styles.button}>
 						<Text style={{ color: "white", fontSize: 16, fontWeight: "bold" }}>Message</Text>
 					</TouchableOpacity>
-					{/* </Link> */}
 				</View>
 			</View>
 		</View>

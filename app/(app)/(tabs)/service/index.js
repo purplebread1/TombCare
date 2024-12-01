@@ -4,11 +4,8 @@ import { Link } from "expo-router";
 
 const SelectService = () => {
 	const services = [
-		{ title: "Tomb Maintenance", navigation: "/service/maintenance" },
-		{ title: "Tomb Construction", navigation: "/service/constructdig" },
-		{ title: "Tomb Excavation", navigation: "/service/excavation" },
-		{ title: "Grave Digging", navigation: "/service/constructdig" },
-		{ title: "Request Burial", navigation: "/service/requestburial" },
+		{ title: "Tomb Services", navigation: "/service/tombservices" },
+		{ title: "Lot Services", navigation: "/service/lotservices" },
 	];
 
 	const Services = () => {
@@ -32,7 +29,9 @@ const SelectService = () => {
 			<Image style={styles.eclipse} source={require("../../../../assets/images/eclipse.png")} />
 			{/* Header */}
 			<View style={styles.header}>
-				<Text style={{ color: "white", fontSize: 24, fontWeight: "bold" }}>Select Service</Text>
+				<Text style={{ color: "white", fontSize: 24, fontWeight: "bold" }}>
+					Select Service Type
+				</Text>
 			</View>
 			<View style={styles.innerContainer}>
 				<Services />

@@ -1,20 +1,15 @@
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import "react-native-reanimated";
+
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-const VisitorStack = () => {
+export default function NotificationsLayout() {
 	return (
 		<Stack>
 			<Stack.Screen name="index" options={{ headerShown: false }} />
-			<Stack.Screen name="tombservices" options={{ headerShown: false }} />
-			<Stack.Screen name="lotservices" options={{ headerShown: false }} />
-			<Stack.Screen name="orderconfirm" options={{ headerShown: false }} />
+			<Stack.Screen name="messaging" options={{ headerShown: false }} />
 		</Stack>
 	);
-};
-
-export default function ServiceLayout() {
-	return <VisitorStack />;
 }
