@@ -62,18 +62,16 @@ const LotServices = () => {
 	};
 
 	const handleOrderClick = async () => {
-		console.log("1");
 		if (!transaction.serviceID || !transaction.serviceName || !transaction.lotID) {
 			alert("Please fill out all fields!");
 			return;
 		}
-		console.log("lo");
 
 		if (
 			transaction.serviceName === "Request Burial" &&
 			record &&
 			Object.entries(record).some(([key, value]) => {
-				if (key !== "approved") {
+				if (key !== "approved" && key !== "middleName") {
 					return value === "" || value == null;
 				}
 				return false;
@@ -83,7 +81,6 @@ const LotServices = () => {
 			return;
 		}
 		setLoading(true);
-		console.log("hello");
 
 		try {
 			let addTransactionSuccess = false;
@@ -102,9 +99,17 @@ const LotServices = () => {
 					}
 				}
 
+				// Trim all string fields in record
+				const trimmedFormData = Object.fromEntries(
+					Object.entries(record).map(([key, value]) => [
+						key,
+						typeof value === "string" ? value.trim() : value,
+					])
+				);
+
 				// Update record with the uploaded URL
 				const updatedRecord = {
-					...record,
+					...trimmedFormData,
 					lotID: transaction.lotID,
 					tombID: "", // assigned by management
 					deathCertificate: deathCertificateURL,

@@ -8,6 +8,8 @@ import Loading from "../../../../components/loading";
 import { useEffect, useState } from "react";
 import { fetchRegisteredTombs } from "../../../../store";
 import * as Clipboard from "expo-clipboard";
+import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { FIRESTORE_DB } from "../../../../firebaseConfig";
 
 const Profile = () => {
 	const USER = useStoreState(UserStore);
@@ -21,10 +23,36 @@ const Profile = () => {
 
 	useEffect(() => {
 		if (USER.id) {
-			fetchRegisteredTombs(USER.id).then((tombs) => {
-				setRegisteredTombs(tombs);
-			});
-			setLoading(false);
+			setLoading(true);
+
+			const recordsRef = collection(FIRESTORE_DB, "records");
+			const q = query(
+				recordsRef,
+				where("approved", "==", true),
+				where("privacy", "==", "Public"),
+				where("registeredBy", "==", USER.id),
+				orderBy("firstName")
+			);
+
+			const unsubscribe = onSnapshot(
+				q,
+				(querySnapshot) => {
+					const records = [];
+					querySnapshot.forEach((doc) => {
+						records.push({ id: doc.id, ...doc.data() });
+					});
+					setRegisteredTombs(records);
+					setLoading(false);
+				},
+				(error) => {
+					console.error("Error fetching records:", error);
+					alert("Failed to fetch records!");
+					setLoading(false);
+				}
+			);
+
+			// Cleanup the listener on unmount
+			return () => unsubscribe();
 		}
 	}, []);
 
@@ -87,7 +115,9 @@ const Profile = () => {
 									}}
 								>
 									<Text style={{ fontSize: 16, fontWeight: "bold", color: "white" }}>
-										{item.firstName} {item.lastName}
+										{item?.firstName || ""}
+										{item?.middleName ? ` ${item.middleName}` : ""}
+										{item?.lastName ? ` ${item.lastName}` : ""}
 									</Text>
 									<View
 										style={{

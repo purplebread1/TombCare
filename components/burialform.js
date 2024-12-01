@@ -22,6 +22,7 @@ const BurialForm = ({ onFormDataChange }) => {
 		dateOfBurial: "",
 		deathCertificate: "",
 		approved: false,
+		privacy: "Public",
 	});
 
 	useEffect(() => {
@@ -175,6 +176,25 @@ const BurialForm = ({ onFormDataChange }) => {
 					/>
 				</View>
 			)}
+			<Text style={{ fontWeight: "bold" }}>Privacy</Text>
+			<View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
+				<CheckBox
+					containerStyle={{ backgroundColor: "transparent" }}
+					title="Public"
+					checked={formData.privacy === "Public"}
+					onPress={() => setFormData({ ...formData, privacy: "Public" })}
+					checkedIcon="dot-circle-o"
+					uncheckedIcon="circle-o"
+				/>
+				<CheckBox
+					containerStyle={{ backgroundColor: "transparent" }}
+					title="Private"
+					checked={formData.privacy === "Private"}
+					onPress={() => setFormData({ ...formData, privacy: "Private" })}
+					checkedIcon="dot-circle-o"
+					uncheckedIcon="circle-o"
+				/>
+			</View>
 			<DateTimePickerModal
 				isVisible={isDatePickerVisible}
 				mode="date"

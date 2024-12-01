@@ -86,12 +86,29 @@ const Home = () => {
 	};
 
 	const handleSearch = () => {
-		const tomb = tombs.find((tomb) => tomb.tombID === search);
+		const tomb = tombs.find(
+			(tomb) =>
+				tomb.tombID === search ||
+				(
+					tomb.firstName?.trim() +
+					" " +
+					tomb.middleName?.trim() +
+					" " +
+					tomb.lastName?.trim()
+				).trim() === search
+		);
 		if (!tomb?.tombID && !tomb?.lotID) {
 			alert("Tomb not found!");
 			return;
 		}
 		setSelectedLotID(tomb?.lotID);
+
+		const { firstName, middleName, lastName, tombID, dateOfBirth, dateOfDeath } = tomb;
+		const dateOfBirthObj = dateOfBirth ? new Date(dateOfBirth.toDate()) : null;
+		const dateOfDeathObj = dateOfDeath ? new Date(dateOfDeath.toDate()) : null;
+		alert(
+			`Tomb found!\nName: ${firstName} ${middleName} ${lastName}\nTomb ID: ${tombID}\nDate of Birth: ${dateOfBirthObj?.toLocaleDateString()}\nDate of Death: ${dateOfDeathObj?.toLocaleDateString()}`
+		);
 	};
 
 	const handleFlyToCemetery = () => {

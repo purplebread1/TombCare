@@ -139,10 +139,19 @@ const AddRecord = ({ lotID, openForm, setOpenForm }) => {
 	};
 
 	const handleAddRecord = async () => {
-		console.log(formData);
+		// Trim all string fields in formData
+		const trimmedFormData = Object.fromEntries(
+			Object.entries(formData).map(([key, value]) => [
+				key,
+				typeof value === "string" ? value.trim() : value,
+			])
+		);
+
+		console.log(trimmedFormData);
+
 		if (
-			Object.entries(formData).some(([key, value]) => {
-				if (key !== "approved" && key !== "tombID") {
+			Object.entries(trimmedFormData).some(([key, value]) => {
+				if (key !== "approved" && key !== "tombID" && key !== "middleName") {
 					return value === "" || value == null;
 				}
 				return false;
@@ -156,7 +165,7 @@ const AddRecord = ({ lotID, openForm, setOpenForm }) => {
 		let deathCertificateURL = "";
 		if (image?.uri) {
 			try {
-				deathCertificateURL = await uploadImage(image.uri, formData.lastName);
+				deathCertificateURL = await uploadImage(image.uri, trimmedFormData.lastName);
 			} catch (error) {
 				alert("Failed to upload death certificate.");
 				console.error(error);
@@ -167,7 +176,7 @@ const AddRecord = ({ lotID, openForm, setOpenForm }) => {
 
 		// Update record with the uploaded URL
 		const updatedRecord = {
-			...formData,
+			...trimmedFormData,
 			deathCertificate: deathCertificateURL,
 			registeredBy: USER.id,
 		};
@@ -183,6 +192,7 @@ const AddRecord = ({ lotID, openForm, setOpenForm }) => {
 			alert("Failed to add record.");
 		}
 	};
+
 	return (
 		<Modal visible={openForm} onRequestClose={handleBackPress} animationType="none">
 			{loading && <Loading />}
