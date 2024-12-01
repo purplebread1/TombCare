@@ -10,6 +10,7 @@ import Mapbox, { MapView, Camera, FillLayer, VectorSource, UserLocation } from "
 import { LocationStore } from "../../../../store";
 import { useStoreState } from "pullstate";
 import * as Location from "expo-location";
+import * as Clipboard from "expo-clipboard";
 
 const { width, height } = Dimensions.get("window");
 
@@ -78,6 +79,8 @@ const Home = () => {
 	const handlePress = (e) => {
 		const feature = e.features[0];
 		const lotID = feature.properties.LotID;
+		console.log(feature.geometry.coordinates[0][0]);
+		zoomToLot(feature.geometry.coordinates[0][0]);
 		setSelectedLotID(lotID);
 		console.log(lotID);
 	};
@@ -107,6 +110,19 @@ const Home = () => {
 			animationMode: "flyTo",
 			animationDuration: 1000,
 		});
+	};
+
+	const zoomToLot = (coordinates) => {
+		cameraRef.current?.setCamera({
+			centerCoordinate: coordinates,
+			zoomLevel: 18,
+			animationMode: "flyTo",
+			animationDuration: 1000,
+		});
+	};
+
+	const copyToClipboard = async () => {
+		await Clipboard.setStringAsync(selectedLotID);
 	};
 
 	return (
@@ -152,6 +168,24 @@ const Home = () => {
 				>
 					<FontAwesome6 name="person" size={18} color="white" />
 				</TouchableOpacity>
+
+				{selectedLotID && (
+					<TouchableOpacity
+						style={{
+							position: "absolute",
+							top: 130,
+							left: 10,
+							zIndex: 200,
+							backgroundColor: COLORS.primary,
+							paddingVertical: 10,
+							paddingHorizontal: 14,
+							borderRadius: 100,
+						}}
+						onPress={copyToClipboard}
+					>
+						<FontAwesome6 name="clipboard" size={18} color="white" />
+					</TouchableOpacity>
+				)}
 
 				{openForm && (
 					<AddRecord lotID={selectedLotID} openForm={openForm} setOpenForm={setOpenForm} />
