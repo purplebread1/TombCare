@@ -9,12 +9,14 @@ import {
 	orderBy,
 	updateDoc,
 	getDocs,
+	doc,
 } from "firebase/firestore";
 import { FIRESTORE_DB } from "../../../../firebaseConfig";
 import { useStoreState } from "pullstate";
 import { UserStore } from "../../../../store";
 import { router } from "expo-router";
 import Loading from "../../../../components/loading";
+import { AntDesign } from "@expo/vector-icons";
 
 const Notifications = () => {
 	const USER = useStoreState(UserStore);
@@ -24,7 +26,12 @@ const Notifications = () => {
 	useEffect(() => {
 		// Fetch notifications in real-time
 		const notificationsRef = collection(FIRESTORE_DB, "notifications");
-		const q = query(notificationsRef, where("to", "==", USER.id), orderBy("created", "desc"));
+		const q = query(
+			notificationsRef,
+			where("to", "==", USER.id),
+			where("deleted", "==", false),
+			orderBy("created", "desc")
+		);
 
 		const unsubscribe = onSnapshot(q, (snapshot) => {
 			const notificationsData = snapshot.docs.map((doc) => ({
@@ -89,62 +96,142 @@ const Notifications = () => {
 				where("transactionID", "==", transactionID),
 				where("to", "==", USER.id),
 				where("seen", "==", false),
-				where("type", "==", "message")
+				where("type", "==", "message"),
+				where("deleted", "==", false)
 			);
 
 			const snapshot = await getDocs(q);
-			snapshot.forEach(async (doc) => {
-				await updateDoc(doc.ref, { seen: true });
+			const batchUpdates = []; // To keep track of async updates
+
+			snapshot.forEach((doc) => {
+				batchUpdates.push(updateDoc(doc.ref, { seen: true }));
+			});
+
+			await Promise.all(batchUpdates); // Ensure all updates complete
+
+			// Update the local state to reset badgeCount for this transactionID
+			setNotifications((prev) =>
+				prev.map((notif) =>
+					notif.transactionID === transactionID
+						? { ...notif, badgeCount: 0 } // Reset badge count
+						: notif
+				)
+			);
+
+			// Navigate to the messaging screen
+			router.push({
+				pathname: "/notifications/messaging",
+				params: { transactionId: transactionID },
 			});
 		} catch (error) {
 			console.error("Error marking notifications as seen:", error);
 		}
+	};
 
-		router.push({
-			pathname: "/notifications/messaging",
-			params: { transactionId: transactionID },
-		});
+	const deleteNotification = async (notificationID, transactionID, type) => {
+		try {
+			if (type === "message" && transactionID) {
+				// Delete all "message" type notifications with the same transactionID
+				const notificationsRef = collection(FIRESTORE_DB, "notifications");
+				const q = query(
+					notificationsRef,
+					where("transactionID", "==", transactionID),
+					where("to", "==", USER.id),
+					where("type", "==", "message"),
+					where("seen", "==", false),
+					where("deleted", "==", false)
+				);
+
+				const snapshot = await getDocs(q);
+				const batchUpdates = []; // Track all deletions
+
+				snapshot.forEach((doc) => {
+					batchUpdates.push(updateDoc(doc.ref, { deleted: true, seen: true }));
+				});
+
+				await Promise.all(batchUpdates);
+
+				console.log(
+					`All "message" notifications for transaction ${transactionID} marked as deleted.`
+				);
+			} else {
+				// Delete a single notification (non-grouped or not type "message")
+				const notificationRef = doc(FIRESTORE_DB, "notifications", notificationID);
+				await updateDoc(notificationRef, { deleted: true });
+
+				console.log(`Notification ${notificationID} marked as deleted.`);
+			}
+
+			// Update local state to remove the deleted notifications
+			setNotifications((prev) =>
+				prev.filter(
+					(notif) =>
+						!(notif.type === "message" && notif.transactionID === transactionID) &&
+						notif.id !== notificationID
+				)
+			);
+		} catch (error) {
+			console.error("Error deleting notification:", error);
+		}
 	};
 
 	const renderNotification = ({ item }) => {
 		const isMessage = item.type === "message";
+		const isService = item.type === "service";
 
 		const NotificationContent = (
 			<View style={styles.notificationContainer}>
-				{isMessage && item.badgeCount > 0 && (
-					<View
-						style={{
-							position: "absolute",
-							top: 10,
-							right: 10,
-							backgroundColor: "red",
-							borderRadius: 10,
-							width: 20,
-							height: 20,
-							justifyContent: "center",
-							alignItems: "center",
-						}}
-					>
-						{/* Badge Count */}
-						<Text style={{ color: "white", fontSize: 12, fontWeight: "bold" }}>
-							{item.badgeCount}
-						</Text>
-					</View>
-				)}
-				<Text style={styles.notificationTitle}>{item.title}</Text>
+				<TouchableOpacity
+					onPress={() => deleteNotification(item.id, item.transactionID || null, item.type)}
+					style={{
+						position: "absolute",
+						top: 5,
+						right: 5,
+						borderRadius: 10,
+
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+				>
+					<AntDesign name="closecircle" size={16} color="black" />
+				</TouchableOpacity>
+				<View style={{ flexDirection: "row", alignItems: "center", columnGap: 5 }}>
+					<Text style={styles.notificationTitle}>{item.title}</Text>
+					{isMessage && item.badgeCount > 0 && (
+						<View
+							style={{
+								backgroundColor: "red",
+								borderRadius: 10,
+								width: 20,
+								height: 20,
+								justifyContent: "center",
+								alignItems: "center",
+							}}
+						>
+							{/* Badge Count */}
+							<Text style={{ color: "white", fontSize: 12, fontWeight: "bold" }}>
+								{item.badgeCount}
+							</Text>
+						</View>
+					)}
+				</View>
 				<Text style={styles.notificationBody}>{item.body}</Text>
 				<Text style={styles.notificationDate}>{formatDateTime(item.created)}</Text>
 			</View>
 		);
 
 		return isMessage ? (
-			<TouchableOpacity
-				onPress={() => markNotificationsAsSeen(item.transactionID)} // Mark all as seen
-			>
+			<TouchableOpacity onPress={() => markNotificationsAsSeen(item.transactionID)}>
+				{NotificationContent}
+			</TouchableOpacity>
+		) : isService ? (
+			<TouchableOpacity onPress={() => router.push("/orders")}>
 				{NotificationContent}
 			</TouchableOpacity>
 		) : (
-			NotificationContent
+			<TouchableOpacity onPress={() => router.push("/profile")}>
+				{NotificationContent}
+			</TouchableOpacity>
 		);
 	};
 
@@ -167,7 +254,9 @@ const Notifications = () => {
 							renderItem={renderNotification}
 						/>
 					) : (
-						<Text style={{ fontSize: 18, fontWeight: "bold" }}>No new notifications</Text>
+						<Text style={{ fontSize: 18, fontWeight: "bold", textAlign: "center" }}>
+							No new notifications
+						</Text>
 					)}
 				</View>
 			)}
@@ -189,8 +278,6 @@ const styles = StyleSheet.create({
 	},
 	innerContainer: {
 		flex: 1,
-		justifyContent: "center",
-		alignItems: "center",
 		paddingHorizontal: 10,
 	},
 	header: {

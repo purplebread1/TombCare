@@ -122,7 +122,7 @@ const Orders = () => {
 		<View style={styles.serviceContainer}>
 			{orders.map((order, index) => (
 				<View key={index} style={styles.button}>
-					{order.status === "On-Going" && (
+					{order.status !== "Pending" && (
 						<Link
 							key={index}
 							href={{

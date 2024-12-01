@@ -82,7 +82,12 @@ export default function TabLayout() {
 	// Listener for notifications
 	useEffect(() => {
 		const notificationsRef = collection(FIRESTORE_DB, "notifications");
-		const q = query(notificationsRef, where("seen", "==", false), where("to", "==", USER.id));
+		const q = query(
+			notificationsRef,
+			where("seen", "==", false),
+			where("to", "==", USER.id),
+			where("deleted", "==", false)
+		);
 
 		const unsubscribe = onSnapshot(q, (snapshot) => {
 			setBadgeCount(snapshot.size); // Update badge count with the number of unseen notifications
@@ -101,7 +106,8 @@ export default function TabLayout() {
 				notificationsRef,
 				where("seen", "==", false),
 				where("to", "==", USER.id),
-				where("type", "!=", "message")
+				where("type", "!=", "message"),
+				where("deleted", "==", false)
 			);
 
 			const snapshot = await getDocs(q);
