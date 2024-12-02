@@ -24,7 +24,7 @@ const Home = () => {
 	const [openForm, setOpenForm] = useState(false);
 	const [tombs, setTombs] = useState([]);
 	const [search, setSearch] = useState("");
-	const [location, setLocation] = useState([]);
+	const [lotCoordinates, setLotCoordinates] = useState([]);
 
 	const mapRef = useRef(null);
 	const cameraRef = useRef(null);
@@ -82,6 +82,7 @@ const Home = () => {
 		console.log(feature.geometry.coordinates[0][0]);
 		zoomToLot(feature.geometry.coordinates[0][0]);
 		setSelectedLotID(lotID);
+		setLotCoordinates(feature.geometry.coordinates[0][0]);
 		console.log(lotID);
 	};
 
@@ -109,6 +110,14 @@ const Home = () => {
 		alert(
 			`Tomb found!\nName: ${firstName} ${middleName} ${lastName}\nTomb ID: ${tombID}\nDate of Birth: ${dateOfBirthObj?.toLocaleDateString()}\nDate of Death: ${dateOfDeathObj?.toLocaleDateString()}`
 		);
+		if (tomb?.lotCoordinates?.length > 0) {
+			cameraRef.current?.setCamera({
+				centerCoordinate: tomb?.lotCoordinates,
+				zoomLevel: 18,
+				animationMode: "flyTo",
+				animationDuration: 1000,
+			});
+		}
 	};
 
 	const handleFlyToCemetery = () => {
@@ -205,7 +214,12 @@ const Home = () => {
 				)}
 
 				{openForm && (
-					<AddRecord lotID={selectedLotID} openForm={openForm} setOpenForm={setOpenForm} />
+					<AddRecord
+						lotID={selectedLotID}
+						lotCoordinates={lotCoordinates}
+						openForm={openForm}
+						setOpenForm={setOpenForm}
+					/>
 				)}
 				<View style={styles.page}>
 					<View style={styles.mapContainer}>

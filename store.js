@@ -218,7 +218,17 @@ export const addTransaction = async (data) => {
 			created: Timestamp.now(),
 		});
 
-		return true; // Return the transaction ID
+		await addNotification(
+			"Service Request",
+			`Service request for ${data.serviceName.toLowerCase()} is waiting for approval.`,
+			{
+				transactionID: newTransactionRef.id,
+				type: "service",
+				to: "management",
+			}
+		);
+
+		return true;
 	} catch (error) {
 		console.error(error);
 		return false;
@@ -236,6 +246,13 @@ export const addRecord = async (data) => {
 			created: Timestamp.now(),
 		});
 		console.log("Record added with ID:", docRef.id);
+
+		await addNotification(
+			"Record Registration Request",
+			"A new record has been requested for approval.",
+			{ recordID: docRef.id, type: "record", to: "management" }
+		);
+
 		return docRef.id; // Return the document ID
 	} catch (error) {
 		console.error("Error adding record:", error);
@@ -280,6 +297,20 @@ export const fetchRegisteredTombs = async (id) => {
 		alert("Failed to fetch records!");
 		return [];
 	}
+};
+
+// Add a new notification
+export const addNotification = async (title, body, data) => {
+	const notificationCollection = collection(FIRESTORE_DB, "notifications");
+
+	await addDoc(notificationCollection, {
+		...data,
+		title: title,
+		body: body,
+		deleted: false,
+		created: Timestamp.now(), // Use Firebase Timestamp
+		seen: false,
+	});
 };
 
 export const savePushToken = async (id) => {

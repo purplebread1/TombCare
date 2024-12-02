@@ -249,6 +249,7 @@ const Notifications = () => {
 				<View style={styles.innerContainer}>
 					{notifications.length > 0 ? (
 						<FlatList
+							showsVerticalScrollIndicator={false}
 							data={notifications}
 							keyExtractor={(item) => item.id || item.transactionID}
 							renderItem={renderNotification}

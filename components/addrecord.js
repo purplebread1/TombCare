@@ -13,7 +13,7 @@ import { FIREBASE_STORAGE } from "../firebaseConfig";
 import { addRecord, UserStore } from "../store";
 import { useStoreState } from "pullstate";
 
-const AddRecord = ({ lotID, openForm, setOpenForm }) => {
+const AddRecord = ({ lotID, openForm, setOpenForm, lotCoordinates }) => {
 	const USER = useStoreState(UserStore);
 	const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 	const [activeDateField, setActiveDateField] = useState(null);
@@ -31,8 +31,8 @@ const AddRecord = ({ lotID, openForm, setOpenForm }) => {
 		dateOfDeath: "",
 		dateOfBurial: "",
 		deathCertificate: "",
-		approved: false,
 		privacy: "Public",
+		lotCoordinates: lotCoordinates,
 	});
 
 	useEffect(() => {
@@ -96,7 +96,6 @@ const AddRecord = ({ lotID, openForm, setOpenForm }) => {
 			dateOfDeath: "",
 			dateOfBurial: "",
 			deathCertificate: "",
-			approved: false,
 			privacy: "Public",
 		});
 		setImage(null);

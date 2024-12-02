@@ -19,9 +19,10 @@ import {
 	getDoc,
 	doc,
 	where,
+	writeBatch,
 } from "firebase/firestore";
 import { FIRESTORE_DB } from "../../../../firebaseConfig";
-import { UserStore } from "../../../../store";
+import { UserStore, addNotification } from "../../../../store";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { useStoreState } from "pullstate";
@@ -87,12 +88,32 @@ const MessagingScreen = () => {
 
 		const unsubscribe = onSnapshot(
 			messagesQuery,
-			(snapshot) => {
+			async (snapshot) => {
 				const fetchedMessages = snapshot.docs.map((doc) => ({
 					id: doc.id,
 					...doc.data(),
 				}));
 				setMessages(fetchedMessages);
+
+				// Automatically mark messages as seen
+				try {
+					const batch = writeBatch(FIRESTORE_DB); // Batch to update multiple docs
+					fetchedMessages.forEach((message) => {
+						if (!message.seen) {
+							const messageRef = doc(
+								FIRESTORE_DB,
+								"transactions",
+								transactionId,
+								"messages",
+								message.id
+							);
+							batch.update(messageRef, { seen: true });
+						}
+					});
+					await batch.commit(); // Commit the batch update
+				} catch (error) {
+					console.error("Error marking messages as seen:", error);
+				}
 			},
 			(error) => {
 				console.error("Error fetching messages:", error);
@@ -112,6 +133,12 @@ const MessagingScreen = () => {
 				text,
 				createdAt: new Date(),
 				user: USER.id,
+			});
+			const fullName = `${USER.firstName} ${USER.middleName || ""} ${USER.lastName}`.trim();
+			await addNotification("New Message", `You have a new message from ${fullName}.`, {
+				transactionID: transactionId,
+				type: "message",
+				to: worker.uid,
 			});
 			setText(""); // Clear the input field
 		} catch (error) {

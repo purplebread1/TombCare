@@ -21,7 +21,6 @@ const BurialForm = ({ onFormDataChange }) => {
 		dateOfDeath: "",
 		dateOfBurial: "",
 		deathCertificate: "",
-		approved: false,
 		privacy: "Public",
 	});
 
